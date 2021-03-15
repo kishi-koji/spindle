@@ -1,0 +1,29 @@
+name: release-changed
+
+on:
+  push:
+    branches:
+      - release/changed
+
+jobs:
+  release-changed:
+    name: release-changed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: 14
+      # Bootstrap lerna for building app before publishing
+      - name: restore lerna
+        uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-v2
+      - run: yarn install --frozen-lockfile
+      - run: npx lerna bootstrap -- --frozen-lockfile
+      - run: npx lerna changed
